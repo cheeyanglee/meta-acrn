@@ -4,8 +4,8 @@ Really rough getting started brain dump.
 
 ### Build Requirements
 
-* openembedded-core, branch master or warrior
-* meta-intel, branch master or warrior
+* openembedded-core, branch master
+* meta-intel, branch master
 * meta-acrn, branch master
 
 ### Setup
@@ -52,13 +52,6 @@ $ bitbake acrn-image-base
 ```
 
 Note that thanks to a bug in bitbake if you go straight to `acrn-image-base` from an empty sstate then it will build a lot of recipes twice.  For speed, build the UOS image first and then the SOS, as the SOS image can re-use 99% of the sstate.
-
-Building `acrn-image-base` will build a `wic.acrn` image that on first boot will be normal Linux but will setup EFI entries so that subsequent boots are inside ACRN. Alternatively use the EFI shell, assuming you've got the image on a USB stick something like this works:
-
-```
-> fs1:
-> \EFI\BOOT\acrn.efi
-```
 
 GVT requires kernel options, these are enabled by default in the `acrn-demo-sos` distro. If these options cause problems then `LINUX_GVT_APPEND` can be overridden.
 
