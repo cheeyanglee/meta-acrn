@@ -3,10 +3,13 @@ require acrn-common.inc
 ACRN_BOARD ?= "nuc7i7dnb"
 ACRN_FIRMWARE ?= "uefi"
 ACRN_SCENARIO  ?= "sdc"
+ACRN_BOARD_FILE ?= ""
+ACRN_SCENARIO_FILE ?= ""
 
 EXTRA_OEMAKE += "HV_OBJDIR=${B}/hypervisor EFI_OBJDIR=${B}/efi-stub"
-EXTRA_OEMAKE += "BOARD=${ACRN_BOARD} FIRMWARE=${ACRN_FIRMWARE} SCENARIO=${ACRN_SCENARIO}"
-EXTRA_OEMAKE += "BOARD_FILE=${S}/misc/acrn-config/xmls/board-xmls/${ACRN_BOARD}.xml SCENARIO_FILE=${S}/misc/acrn-config/xmls/config-xmls/${ACRN_BOARD}/${ACRN_SCENARIO}.xml"
+EXTRA_OEMAKE += "FIRMWARE=${ACRN_FIRMWARE}"
+EXTRA_OEMAKE += "${@bb.utils.contains('ACRN_BOARD_FILE', '', 'BOARD_FILE=${ACRN_BOARD_FILE}', 'BOARD=${ACRN_BOARD}', d)}"
+EXTRA_OEMAKE += "${@bb.utils.contains('ACRN_SCENARIO_FILE', '', 'SCENARIO_FILE=${ACRN_SCENARIO_FILE}', 'SCENARIO=${ACRN_SCENARIO}', d)} "
 
 inherit python3native deploy
 
@@ -16,16 +19,17 @@ DEPENDS += "python3-kconfiglib-native"
 DEPENDS += "${@'gnu-efi' if d.getVar('ACRN_FIRMWARE') == 'uefi' else ''}"
 
 do_configure() {
-	cat <<-EOF >> ${S}/hypervisor/arch/x86/configs/${ACRN_BOARD}.config
-CONFIG_$(echo ${ACRN_SCENARIO} | tr '[:lower:]' '[:upper:]')=y
+	# do not override UEFI_OS_LOADER_NAME when customized scenario file selected
+	if [ -z "${ACRN_SCENARIO_FILE}" ]; then
+		cat <<-EOF >> ${S}/hypervisor/arch/x86/configs/${ACRN_BOARD}.config
 CONFIG_UEFI_OS_LOADER_NAME="\\\\EFI\\\\BOOT\\\\bootx64.efi"
 EOF
-	cat ${S}/hypervisor/arch/x86/configs/${ACRN_BOARD}.config
+		cat ${S}/hypervisor/arch/x86/configs/${ACRN_BOARD}.config
+	fi
 }
 
-
 do_compile() {
-	oe_runmake -C hypervisor
+	oe_runmake hypervisor
 	if [ "${ACRN_FIRMWARE}" = "uefi" ]; then
 		oe_runmake -C misc/efi-stub
 	fi
@@ -36,7 +40,6 @@ do_install() {
 	if [ "${ACRN_FIRMWARE}" = "uefi" ]; then
 		oe_runmake -C misc/efi-stub install install-debug
 	fi
-
 	# Remove sample files
 	rm -rf ${D}${datadir}/acrn
 	if [ "${ACRN_FIRMWARE}" = "uefi" ]; then
@@ -53,9 +56,14 @@ do_deploy() {
 	rm -f ${DEPLOYDIR}/acrn.32.out
 	lnr ${DEPLOYDIR}/acrn.${ACRN_BOARD}.${ACRN_FIRMWARE}.${ACRN_SCENARIO}.32.out ${DEPLOYDIR}/acrn.32.out
 	if [ "${ACRN_FIRMWARE}" = "uefi" ]; then
-		install -m 0755 ${D}${libdir}/acrn/acrn.${ACRN_BOARD}.${ACRN_SCENARIO}.efi ${DEPLOYDIR}
-		rm -f ${DEPLOYDIR}/acrn.efi
-		lnr ${DEPLOYDIR}/acrn.${ACRN_BOARD}.${ACRN_SCENARIO}.efi ${DEPLOYDIR}/acrn.efi
+		if [ ! -z "${ACRN_SCENARIO_FILE}" ]; then
+			rm -f ${DEPLOYDIR}/acrn.efi
+			install -m 0755 ${B}/hypervisor/acrn.efi ${DEPLOYDIR}
+		else
+			install -m 0755 ${D}${libdir}/acrn/acrn.${ACRN_BOARD}.${ACRN_SCENARIO}.efi ${DEPLOYDIR}
+			rm -f ${DEPLOYDIR}/acrn.efi
+			lnr ${DEPLOYDIR}/acrn.${ACRN_BOARD}.${ACRN_SCENARIO}.efi ${DEPLOYDIR}/acrn.efi
+		fi
 	fi
 }
 
