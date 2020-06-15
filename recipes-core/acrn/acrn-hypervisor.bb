@@ -5,7 +5,7 @@ ACRN_FIRMWARE ?= "uefi"
 ACRN_SCENARIO  ?= "sdc"
 
 EXTRA_OEMAKE += "HV_OBJDIR=${B}/hypervisor EFI_OBJDIR=${B}/efi-stub"
-EXTRA_OEMAKE += "BOARD=${ACRN_BOARD} FIRMWARE=${ACRN_FIRMWARE} SCENARIO=${ACRN_SCENARIO}"
+EXTRA_OEMAKE += "FIRMWARE=${ACRN_FIRMWARE}"
 EXTRA_OEMAKE += "BOARD_FILE=${S}/misc/acrn-config/xmls/board-xmls/${ACRN_BOARD}.xml SCENARIO_FILE=${S}/misc/acrn-config/xmls/config-xmls/${ACRN_BOARD}/${ACRN_SCENARIO}.xml"
 
 inherit python3native deploy
