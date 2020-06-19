@@ -5,6 +5,8 @@ inherit pkgconfig systemd
 DEPENDS += "numactl systemd e2fsprogs libevent libxml2 openssl"
 RDEPENDS_${PN} += "bash"
 
+SRC_URI += " file://no-life-mngr.patch  "
+
 do_compile() {
 	oe_runmake tools
 }
