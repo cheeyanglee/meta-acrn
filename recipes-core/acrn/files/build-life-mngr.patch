@@ -1,0 +1,66 @@
+From 790929dc4ad0127faeaae8889cab87ea6b87056a Mon Sep 17 00:00:00 2001
+From: Minggui Cao <minggui.cao@intel.com>
+Date: Tue, 2 Jun 2020 11:45:00 +0800
+Subject: [PATCH] tools: improve Makefile for life-mngr to build
+
+1. add life-mngr as a target in misc/Makefile, so it is
+convenient to build and used in Yocto system.
+2. add install target in life-mngr/Makefile to be packaged
+into device file-system.
+
+Tracked-On: #4870
+Signed-off-by: Minggui Cao <minggui.cao@intel.com>
+---
+ misc/Makefile           | 12 ++++++++----
+ misc/life_mngr/Makefile |  5 +++++
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/misc/Makefile b/misc/Makefile
+index 2663eab241..1a510ad35c 100644
+--- a/misc/Makefile
++++ b/misc/Makefile
+@@ -4,9 +4,9 @@ RELEASE ?= 0
+ 
+ .PHONY: all acrn-crashlog acrnlog acrn-manager acrntrace acrnbridge life_mngr
+ ifeq ($(RELEASE),0)
+-all: acrn-crashlog acrnlog acrn-manager acrntrace acrnbridge
++all: acrn-crashlog acrnlog acrn-manager acrntrace acrnbridge life_mngr
+ else
+-all: acrn-manager acrnbridge
++all: acrn-manager acrnbridge life_mngr
+ endif
+ 
+ acrn-crashlog:
+@@ -38,9 +38,10 @@ clean:
+ 
+ .PHONY: install
+ ifeq ($(RELEASE),0)
+-install: acrn-crashlog-install acrnlog-install acrn-manager-install acrntrace-install acrnbridge-install
++install: acrn-crashlog-install acrnlog-install acrn-manager-install acrntrace-install acrnbridge-install \
++	acrn-life-mngr-install
+ else
+-install: acrn-manager-install acrnbridge-install
++install: acrn-manager-install acrnbridge-install acrn-life-mngr-install
+ endif
+ 
+ acrn-crashlog-install:
+@@ -57,3 +58,6 @@ acrntrace-install:
+ 
+ acrnbridge-install:
+ 	$(MAKE) -C $(T)/acrnbridge OUT_DIR=$(OUT_DIR) install
++
++acrn-life-mngr-install:
++	$(MAKE) -C $(T)/life_mngr OUT_DIR=$(OUT_DIR) install
+diff --git a/misc/life_mngr/Makefile b/misc/life_mngr/Makefile
+index 725f257ea9..47d53f6acd 100644
+--- a/misc/life_mngr/Makefile
++++ b/misc/life_mngr/Makefile
+@@ -51,3 +51,8 @@ ifneq ($(OUT_DIR),.)
+ 	rm -rf $(OUT_DIR)
+ endif
+ 
++.PHONY: install
++install:
++	install -d $(DESTDIR)/usr/bin
++	install -t $(DESTDIR)/usr/bin $(OUT_DIR)/life_mngr
++	install -p -D -m 0644 $(OUT_DIR)/life_mngr.service $(DESTDIR)/usr/lib/systemd/system
