@@ -4,6 +4,8 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=5732af37bf18525ed9d2b16985054901"
 
 SRC_URI = "git://github.com/projectacrn/acrn-hypervisor.git;branch=${SRCBRANCH}; \
+	file://gcc-10-disable-array-bounds-warning-for-now.patch \
+	file://build-life-mngr.patch \
 "
 
 # Snapshot tags are of the format:
