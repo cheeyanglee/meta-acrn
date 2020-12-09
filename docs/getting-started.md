@@ -163,10 +163,7 @@ Then this in `conf/multiconfig/installer.conf`:
 
 ```
 # use the installer wks file
-WKS_FILE = "image-installer.wks.in"
-
-# do not need to convert wic to wic.acrn
-IMAGE_FSTYPES_remove="wic.acrn"
+WKS_FILE_pn-acrn-image-base = "image-installer.wks.in"
 
 # build initramsfs to start the installation
 INITRD_IMAGE_LIVE="core-image-minimal-initramfs"
@@ -178,11 +175,10 @@ IMAGE_TYPEDEP_wic = "ext4"
 # content to be install
 IMAGE_BOOT_FILES_append = "\
     ${KERNEL_IMAGETYPE} \
-    microcode.cpio \
-    acrn.efi;EFI/BOOT/acrn.efi \
-    systemd-bootx64.efi;EFI/BOOT/bootx64.efi \
-    ${IMAGE_ROOTFS}/boot/loader/loader.conf;loader/loader.conf \
-    ${IMAGE_ROOTFS}/boot/loader/entries/boot.conf;loader/entries/boot.conf \
+    acrn.bin;esp/acrn.bin \
+    microcode.cpio;esp/microcode.cpio \
+    grub-efi-bootx64.efi;EFI/BOOT/bootx64.efi \
+    ${IMAGE_ROOTFS}/boot/EFI/BOOT/grub.cfg;EFI/BOOT/grub.cfg \
     ${IMGDEPLOYDIR}/${IMAGE_BASENAME}-${MACHINE}.ext4;rootfs.img \
 "
 ```
